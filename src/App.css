@@ -1,0 +1,516 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+body {
+  background-color: #F5F5F5;
+  font-family: "Inter", sans-serif;
+}
+
+h1, h2 {
+  font-weight: bold;
+}
+
+header {
+  background-color: #101010;
+  padding: 1em 3em;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header > div {
+  width: 50%;
+}
+
+header > div:nth-of-type(2) {
+  text-align: end;
+}
+
+.logo {
+  width: 20%;
+}
+
+.nav-item {
+  text-decoration: none;
+  color:rgb(75, 75, 75);
+  padding: 0px 1em;
+}
+
+.nav-selected {
+  text-decoration: underline;
+  font-size: 1.2em;
+  color: white;
+}
+
+.dropbox {
+  border: dashed 1px #799FE8;
+  border-radius: 5px;
+  color: #799FE8;
+  background-color: #EAEAEA;
+  height: 50vh;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.dropbox > div {
+  width: 70%;
+}
+
+.dropbox p {
+  text-align: center;
+}
+
+.dropbox, .dropbox > div, .dropbox > div > div, section, .output-container, .output-container > div, .success-button-container, .debt-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dropbox > div > div, .dropboxContainer {
+  flex-direction: column;
+}
+
+.dropboxContainer h2 {
+  margin-bottom: 20px;
+}
+
+section {
+  justify-content: space-around;
+  margin-top: 4em;
+}
+
+.dropboxContainer {
+  width: 48%;
+}
+
+h2 {
+  color: #3A78F0;
+  display: flex;
+  align-items: center;
+}
+
+h2 svg {
+  margin-right: 10px;
+}
+
+button {
+  margin-top: 3em;
+  padding: 1em 2em;
+  border-radius: 10px;
+  border-style: solid;
+  font-size: 1.3em;
+  background-color: #6177EB;
+  color: #F6F6F6;
+  border-color: #262626;
+}
+
+button:disabled:not(.download-button) {
+  background-color: #B9B9B9;
+  color: #696969;
+  border-color: #AFD2C1;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+h1 {
+  text-align: center;
+  font-size: 3em;
+  margin-left: 10px;
+}
+
+.info, .res-download {
+  color: #204389;
+  cursor: pointer;
+}
+
+main {
+  padding-top: 5em;
+  padding-bottom: 2em;
+}
+
+h2 {
+  font-size: 2em;
+}
+
+.nodisplay {
+  display: none;
+}
+
+.dropbox-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-files-button {
+  cursor: pointer;
+  color: rgb(187, 56, 56);
+  transition: all 0.5s;
+}
+
+.delete-files-button:hover {
+  color: rgb(214, 81, 81);
+}
+
+.dropboxContainer ul {
+  width: 100%;
+  height: 100%;
+  list-style-type: none;
+  padding: 15px;
+  overflow-y: scroll;
+  color: black;
+}
+
+.dropboxContainer li {
+  width: 100%;
+  border: solid black 1px;
+  padding: 0.8em;
+  box-sizing: border-box;
+  border-radius: 7px;
+  margin-bottom: 5px;
+  background-color: #D9D9D9;
+  display: flex;
+  align-items: center;
+}
+
+.liIcon {
+  margin-right: 10px;
+}
+
+.output-container, .output-container > div, .main-title-container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.output-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100vh;
+  text-align: center;
+}
+
+.output-container > div {
+  background-color: #EAEAEA;
+  border-radius: 10px;
+  padding: 3em;
+}
+
+.output-container h3 {
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.success {
+  color: #17822F
+}
+
+.has-warning {
+  color: rgb(202, 94, 27)
+}
+
+.download-button {
+  width: 80%;
+}
+
+.success-button-container, .debt-container, .output-container > div > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.debt-container {
+  font-size: 1.4em;
+  margin-top: 0.8em;
+  padding-top: 10px;
+  width: 80%;
+  border-top: solid 1px black;
+}
+
+.debt-container label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.debt-container strong {
+  color: rgb(174, 69, 8)
+}
+
+.success-button-container {
+  margin-top: 2em;
+  width: 60%;
+}
+
+.success-button-container p {
+  font-size: 1.1em;
+  margin-bottom: 5px;
+}
+
+.success-button-container button {
+  margin: 0;
+}
+
+button:not(button:disabled) {
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+}
+
+.output-container ul {
+  margin-top: 1em;
+}
+
+.output-container li {
+  margin-bottom: 20px;
+  list-style: inside;
+  color: rgb(142, 68, 21);
+  font-size: 1.1em;
+}
+
+button:not(button:disabled):hover {
+  background-color: white;
+  border-color: #6177EB;
+  color:#6177EB;
+}
+
+.fail p {
+  margin-top: 1em;
+  font-size: 1.2em;
+}
+
+.fail h3 {
+  color:rgb(142, 68, 21)
+}
+
+@keyframes loadingsvg {
+  from {transform: rotate(0deg)}
+  to {transform: rotate(360deg)}
+}
+
+@keyframes loadingText {
+  0% {color:rgb(25, 25, 25)}
+  25% {color: #6177EB}
+  50% {color: #6177EB}
+  75% {color:rgb(25, 25, 25)}
+}
+
+.title-loading {
+  animation: loadingText 2s ease-in-out 1s infinite;
+}
+
+.loadingIcon {
+  width: 100%;
+  animation-name: loadingsvg;
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.tooltip .tooltip-text {
+  width: 1300px;
+  visibility: hidden;
+  position: absolute;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 30px 15px;
+  border-radius: 6px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+  top: 135%;
+  left: 50%;
+  margin-left: -350px;
+}
+
+.tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #555 transparent;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-divided {
+  width: 90%;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.tooltip-divided > div {
+  width: 45%;
+  text-align: start;
+  margin: 25px 0px;
+  border: solid #fff;
+  border-width: 2px 1px;
+  padding: 2% 3%;;
+}
+
+.tooltip-divided > div:first-of-type {
+  border-left-style: none;
+  padding-right: 7%
+}
+
+.tooltip-divided > div:last-of-type {
+  border-right-style: none;
+  padding-left: 7%
+}
+
+.tooltip h4 {
+  font-size: 1.7em;
+}
+
+.tooltip h5 {
+  text-align: center;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.tooltip h4, .tooltip h5 {
+  font-weight: bold;
+}
+
+.tooltip-output {
+  width: 60%;
+}
+
+.tooltip ol {
+  list-style-type: lower-alpha;
+}
+
+.tooltip ul {
+  list-style-type: lower-roman;
+  margin-left: 5%;
+}
+
+.tooltip li {
+  margin: 5px 0px;
+}
+
+@media only screen and (max-width: 1280px) {
+  html {
+    font-size: 12px;
+  }
+  .nav-selected {
+    font-size: 1.3em;
+  }
+  main {
+    padding-top: 2.7em;
+  }
+  .main-screen {
+    margin-top: 2.4em;
+  }
+  h1 {
+    font-size: 2.5em;
+  }
+  h2 {
+    font-size: 1.5em;
+  }
+  .dropboxContainer h2 {
+    margin-bottom: 10px;
+  }
+  .dropboxContainer li {
+    padding: 0.6em
+  }
+  button {
+    margin-top: 2em;
+  }
+  .tooltip .tooltip-text {
+    width: 800px;
+    margin-left: -200px;
+  }
+  .tooltip-output {
+    width: 80%;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .dropboxContainer {
+    width: 90%;
+    margin-top: 1em;
+  }
+  .tooltip .tooltip-text {
+    width: 500px;
+    margin-left: -50px;
+  }
+  .tooltip-output {
+    width: 80%;
+  }
+}
