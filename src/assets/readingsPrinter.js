@@ -18,14 +18,19 @@ const stackData = (readingsData) => {
         if (keys.length === data.length) {
             clearInterval(inter);
             const outputArr = [];
-            data.forEach(arr => {
-                outputArr.push({
-                    name: arr.name,
-                    rows: processFileData(arr.fileData[0])
+            setTimeout(()=> {
+                data.forEach((arr, ind) => {
+                    if (arr.fileData.length !== 0) {
+                        outputArr.push({
+                            name: arr.name,
+                            rows: processFileData(arr.fileData[0])
+                        })
+                    } else {
+                        console.log(`File ${arr.name} came out empty at position ${ind}.`)
+                    }
                 })
-            })
-            console.log(outputArr);
-            prepareForPrinting(outputArr, data);
+                prepareForPrinting(outputArr, data);
+            }, 200)
         } else {
             console.log('nope', data, keys.length);
         }
@@ -64,7 +69,6 @@ const prepareForPrinting = (arr, data) => {
     arr.forEach((obj, ind) => {
         const rows = [];
         const objKeys = Object.keys(obj.rows[0]);
-        //console.log(objKeys);
         obj.rows.forEach(row => {
             const desvio = getDeviancy(row[UV]);
             rows.push({
@@ -91,7 +95,6 @@ const printWb = arr => {
         worksheet["!cols"].push({ wch: max_width });
     }
 
-    console.log(formattedRows, titles)
     XLSX.writeFile(workbook, "RES521-24.xlsx", { compression: true });
     //return workbook
 }
@@ -120,13 +123,13 @@ const prepareForOutput = row => {
     for (let i= 0 - desvioMaximo; i <= desvioMaximo ; i++) {
         if (i <= 0 - minBreakpoint || i >= minBreakpoint) {
             if (row.desvio === i) {
-                temp_obj[(i).toString()] = "1";
+                temp_obj[(i).toString()] = 1;
             } else {
                 temp_obj[(i).toString()] = null;
             }
         } else {
             if (row.desvio === i) {
-                temp_obj["0"] = "1";
+                temp_obj["0"] = 1;
             }
         }
     }
