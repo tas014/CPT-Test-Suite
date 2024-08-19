@@ -32,7 +32,7 @@ const stackData = (readingsData) => {
                 prepareForPrinting(outputArr, data);
             }, 200)
         } else {
-            console.log('nope', data, keys.length);
+            //console.log('nope', data, keys.length);
         }
     }, 100)
 }
@@ -73,7 +73,8 @@ const prepareForPrinting = (arr, data) => {
             const desvio = getDeviancy(row[UV]);
             rows.push({
                 ENRE:arr[ind].name,
-                desvio
+                desvio,
+                UV:row[UV] 
             })
         })
         output.push(rows)
@@ -86,7 +87,7 @@ const printWb = arr => {
     
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(formattedRows);
-    const titles = ["NRO ENRE", "-18%", "-17%", "-16%", "-15%", "-14%", "-13%", "-12%", "-11%", "-10%", "-9%", "-8%", "-7%", "-6%", "-5%", "-4%", "-3%", "0%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", "10%", "11%", "12%", "13%", "14%", "15%", "16%", "17%", "18%"];
+    const titles = ["NRO ENRE", "Tension" ,"-18%", "-17%", "-16%", "-15%", "-14%", "-13%", "-12%", "-11%", "-10%", "-9%", "-8%", "-7%", "-6%", "-5%", "-4%", "-3%", "0%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", "10%", "11%", "12%", "13%", "14%", "15%", "16%", "17%", "18%"];
     XLSX.utils.sheet_add_aoa(worksheet, [titles], { origin: "A1" });
     XLSX.utils.book_append_sheet(workbook, worksheet, "Output");
     worksheet["!cols"] = [];
@@ -143,7 +144,7 @@ const prepareForOutput = row => {
         outputObj[key] = temp_obj[key];
     })
 
-    const outputArr = [outputObj.ENRE];
+    const outputArr = [row.ENRE, row.UV];
     for (let i= 0 - desvioMaximo; i <= desvioMaximo ; i++) {
         const stringedI = i.toString();
         if (keys.includes(stringedI)) {
