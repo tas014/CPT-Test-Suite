@@ -68,7 +68,6 @@ const prepareForPrinting = (arr, data) => {
 
     arr.forEach((obj, ind) => {
         const rows = [];
-        const objKeys = Object.keys(obj.rows[0]);
         obj.rows.forEach(row => {
             const desvio = getDeviancy(row[UV]);
             rows.push({
