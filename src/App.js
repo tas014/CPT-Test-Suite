@@ -2,12 +2,13 @@ import Header from './components/Header';
 import Dropbox from './components/Dropbox';
 import Download from './components/Download';
 import {processData, printWorkbook} from './assets/processing';
-import stackData from './assets/readingsPrinter';
 import { useState } from 'react';
 import useStateWithCallback from 'use-state-with-callback';
 import OutputScreen from './components/OutputScreen';
 import Tooltip from './components/Tooltip';
 import './App.css';
+import Modal from './components/Modal';
+import RESDownload from './components/RESDownload';
 
 function App() {
   const updateTrigger = () => {
@@ -30,6 +31,7 @@ function App() {
   const [errs, setErrs] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [ready, setReady] = useState(false);
+  const [RESVisible, setRESVisible] = useState(false);
   
 
   // DROP FUNCTIONS
@@ -152,7 +154,13 @@ function App() {
   }
 
   const handleResDownload = () => {
-    stackData(data)
+    //stackData(data);
+    setRESVisible(true);
+  }
+
+  const hideRES = e => {
+    e.stopPropagation();
+    setRESVisible(false)
   }
 
   // UI CLICKS
@@ -175,6 +183,9 @@ function App() {
     <div className="App">
       <Header />
       <main>
+        {RESVisible && <Modal hideComponent={hideRES}>
+          <RESDownload data={data} />
+        </Modal>}
         <div className='main-title-container'>
           <Tooltip />
           <h1>Calidad de Producto Técnico</h1>

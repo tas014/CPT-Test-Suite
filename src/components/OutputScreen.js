@@ -1,5 +1,7 @@
 import React from 'react'
 import { VscLoading } from "react-icons/vsc";
+import Modal from './Modal';
+import Button from './Button';
 
 const OutputScreen = ({handleDownload, hideComponent, warnings = [], penalty, fail = false, ready}) => {
 
@@ -8,7 +10,7 @@ const OutputScreen = ({handleDownload, hideComponent, warnings = [], penalty, fa
     
 
   return (
-    <div className='output-container' onClick={hideComponent}>
+    <Modal hideComponent={hideComponent}>
         <div>
             {!fail && 
             <div onClick={e => e.stopPropagation()}>
@@ -24,9 +26,7 @@ const OutputScreen = ({handleDownload, hideComponent, warnings = [], penalty, fa
                 </div>
                 <div className='success-button-container'>
                     <p>Descarga los resultados haciendo click en este botón</p>
-                    <button className='download-button' disabled={!ready} onClick={handleDownload}>
-                        {ready ? 'Descargar' : <VscLoading size={25} className='loadingIcon' />}
-                    </button>
+                    <Button click={handleDownload} cl='download-button bold' enabled={ready} content={ready ? 'Descargar' : <VscLoading size={25} className='loadingIcon' />} />
                 </div>
             </div>}
             {fail && 
@@ -36,7 +36,7 @@ const OutputScreen = ({handleDownload, hideComponent, warnings = [], penalty, fa
             </div>
             }
         </div>
-    </div>
+    </Modal>
   )
 }
 

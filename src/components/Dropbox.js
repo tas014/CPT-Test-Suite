@@ -3,6 +3,7 @@ import Filler from './Filler'
 import { RiFileExcel2Line } from "react-icons/ri";
 import { CiFileOn } from "react-icons/ci";
 import { FaTrashAlt } from "react-icons/fa";
+import Button from './Button';
 
 const Dropbox = ({icon, title, handleDrop, handleFileUpload, type, fil, handleDelete, handleResDownload}) => {
     const inputDataFile = useRef(null)
@@ -33,7 +34,7 @@ const Dropbox = ({icon, title, handleDrop, handleFileUpload, type, fil, handleDe
         </div>
         <input type='file' multiple accept='.dat' onChange={handleFileUpload} ref={inputDataFile} className='nodisplay'/>
         <input type='file' accept='.xlsx, .xls' onChange={handleFileUpload} ref={inputEnergyFile} className='nodisplay'/>
-        {title === 'Data' ? <span onClick={handleResDownload} className='res-download'>Descargar RES521-24</span> : null}
+        {title === 'Data' && fil.length > 0 ? <Button cl='RES-btn' content='Descargar RTQ RES521-24' click={handleResDownload} enabled={true} /> : null}
     </div>
   )
 }

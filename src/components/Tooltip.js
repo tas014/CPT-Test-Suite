@@ -3,7 +3,7 @@ import { IoIosInformationCircleOutline } from "react-icons/io";
 
 const Tooltip = () => {
   return (
-    <div className='tooltip'>
+    <article className='tooltip'>
         <IoIosInformationCircleOutline size={50} className='info'/>
         <div className='tooltip-text'>
             <div className='tooltip-container'>
@@ -37,7 +37,7 @@ const Tooltip = () => {
                 </div>
             </div>
         </div>
-    </div>
+    </article>
   )
 }
 
