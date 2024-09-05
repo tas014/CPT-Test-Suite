@@ -3,48 +3,135 @@
    License: none (public domain)
 */
 
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
+
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
-	display: block;
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
 }
+
 body {
-	line-height: 1;
+  line-height: 1;
 }
-ol, ul {
-	list-style: none;
+
+ol,
+ul {
+  list-style: none;
 }
-blockquote, q {
-	quotes: none;
+
+blockquote,
+q {
+  quotes: none;
 }
-blockquote:before, blockquote:after,
-q:before, q:after {
-	content: '';
-	content: none;
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: '';
+  content: none;
 }
+
 table {
-	border-collapse: collapse;
-	border-spacing: 0;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -55,7 +142,9 @@ body {
   font-family: "Inter", sans-serif;
 }
 
-h1, h2 {
+h1,
+h2,
+h3 {
   font-weight: bold;
 }
 
@@ -76,9 +165,14 @@ header {
   align-items: center;
 }
 
-.flex {
+.flex,
+.flexV {
   display: flex;
   justify-content: flex-start;
+}
+
+.flexV {
+  flex-flow: column wrap;
 }
 
 .centerX {
@@ -101,11 +195,11 @@ header {
   justify-content: space-between;
 }
 
-header > div {
+header>div {
   width: 50%;
 }
 
-header > div:nth-of-type(2) {
+header>div:nth-of-type(2) {
   text-align: end;
 }
 
@@ -115,7 +209,7 @@ header > div:nth-of-type(2) {
 
 .nav-item {
   text-decoration: none;
-  color:rgb(75, 75, 75);
+  color: rgb(75, 75, 75);
   padding: 0px 1em;
 }
 
@@ -135,7 +229,7 @@ header > div:nth-of-type(2) {
   overflow: hidden;
 }
 
-.dropbox > div {
+.dropbox>div {
   width: 70%;
 }
 
@@ -143,7 +237,14 @@ header > div:nth-of-type(2) {
   text-align: center;
 }
 
-.dropbox, .dropbox > div, .dropbox > div > div, section, .output-container, .output-container > div, .success-button-container, .debt-container {
+.dropbox,
+.dropbox>div,
+.dropbox>div>div,
+section,
+.output-container,
+.output-container>div,
+.success-button-container,
+.debt-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -154,7 +255,8 @@ section {
   align-items: flex-start;
 }
 
-.dropbox > div > div, .dropboxContainer {
+.dropbox>div>div,
+.dropboxContainer {
   flex-direction: column;
 }
 
@@ -230,7 +332,7 @@ h1 {
 }
 
 .RES-download:last-of-type {
-  background-color:#204389;
+  background-color: #204389;
 }
 
 .RES-container h3 {
@@ -291,7 +393,9 @@ h2 {
   margin-right: 10px;
 }
 
-.output-container, .output-container > div, .main-title-container{
+.output-container,
+.output-container>div,
+.main-title-container {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,7 +411,7 @@ h2 {
   text-align: center;
 }
 
-.output-container > div {
+.output-container>div {
   background-color: #EAEAEA;
   border-radius: 10px;
   padding: 3em;
@@ -330,7 +434,9 @@ h2 {
   width: 80%;
 }
 
-.success-button-container, .debt-container, .output-container > div > div {
+.success-button-container,
+.debt-container,
+.output-container>div>div {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -387,7 +493,7 @@ button:not(button:disabled) {
 button:not(button:disabled):hover {
   background-color: white;
   border-color: #6177EB;
-  color:#6177EB;
+  color: #6177EB;
 }
 
 .fail p {
@@ -396,19 +502,35 @@ button:not(button:disabled):hover {
 }
 
 .fail h3 {
-  color:rgb(142, 68, 21)
+  color: rgb(142, 68, 21)
 }
 
 @keyframes loadingsvg {
-  from {transform: rotate(0deg)}
-  to {transform: rotate(360deg)}
+  from {
+    transform: rotate(0deg)
+  }
+
+  to {
+    transform: rotate(360deg)
+  }
 }
 
 @keyframes loadingText {
-  0% {color:rgb(25, 25, 25)}
-  25% {color: #6177EB}
-  50% {color: #6177EB}
-  75% {color:rgb(25, 25, 25)}
+  0% {
+    color: rgb(25, 25, 25)
+  }
+
+  25% {
+    color: #6177EB
+  }
+
+  50% {
+    color: #6177EB
+  }
+
+  75% {
+    color: rgb(25, 25, 25)
+  }
 }
 
 .title-loading {
@@ -474,21 +596,22 @@ button:not(button:disabled):hover {
   justify-content: space-evenly;
 }
 
-.tooltip-divided > div {
+.tooltip-divided>div {
   width: 45%;
   text-align: start;
   margin: 25px 0px;
   border: solid #fff;
   border-width: 2px 1px;
-  padding: 2% 3%;;
+  padding: 2% 3%;
+  ;
 }
 
-.tooltip-divided > div:first-of-type {
+.tooltip-divided>div:first-of-type {
   border-left-style: none;
   padding-right: 7%
 }
 
-.tooltip-divided > div:last-of-type {
+.tooltip-divided>div:last-of-type {
   border-right-style: none;
   padding-left: 7%
 }
@@ -503,7 +626,8 @@ button:not(button:disabled):hover {
   margin-bottom: 10px;
 }
 
-.tooltip h4, .tooltip h5 {
+.tooltip h4,
+.tooltip h5 {
   font-weight: bold;
 }
 
@@ -524,38 +648,69 @@ button:not(button:disabled):hover {
   margin: 5px 0px;
 }
 
+.route-error h1,
+.route-error h3,
+.route-error p {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+.route-error h3 {
+  font-size: 1.5em;
+}
+
+.route-error p {
+  width: 75%;
+}
+
+.route-error {
+  height: 100vh;
+  margin: 0px;
+}
+
 @media only screen and (max-width: 1280px) {
   html {
     font-size: 12px;
   }
+
   .nav-selected {
     font-size: 1.3em;
   }
+
   main {
     padding-top: 2.7em;
   }
+
   .main-screen {
     margin-top: 2.4em;
   }
+
   h1 {
     font-size: 2.5em;
   }
+
   h2 {
     font-size: 1.5em;
   }
+
   .dropboxContainer h2 {
     margin-bottom: 10px;
   }
+
   .dropboxContainer li {
     padding: 0.6em
   }
+
   button {
     margin-top: 2em;
   }
+
   .tooltip .tooltip-text {
     width: 800px;
     margin-left: -200px;
   }
+
   .tooltip-output {
     width: 80%;
   }
@@ -566,10 +721,12 @@ button:not(button:disabled):hover {
     width: 90%;
     margin-top: 1em;
   }
+
   .tooltip .tooltip-text {
     width: 500px;
     margin-left: -50px;
   }
+
   .tooltip-output {
     width: 80%;
   }

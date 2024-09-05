@@ -3,11 +3,32 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import Monofasico from './routes/monofasico';
+import ErrorPage from './routes/error-page';
+import Trifasico from './routes/trifasico';
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Monofasico />,
+    errorElement: <ErrorPage />
+  },
+  {
+    path: "/monofasico",
+    element: <Monofasico />,
+    errorElement: <ErrorPage />
+  }, {
+    path: "/trifasico",
+    element: <Trifasico />,
+    errorElement: <ErrorPage />
+  }
+])
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 
