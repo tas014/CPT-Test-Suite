@@ -169,7 +169,6 @@ header {
 .flexV,
 .flexend {
   display: flex;
-  justify-content: flex-start;
 }
 
 .flexend {

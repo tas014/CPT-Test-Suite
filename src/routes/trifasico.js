@@ -42,17 +42,19 @@ const Trifasico = () => {
                     <RESDownload data={data} />
                 </Modal>}
                 <h1>Trifasico</h1>
-                <Dropbox
-                    icon={false}
-                    title='Data'
-                    handleDrop={handleDataDrop}
-                    type={true}
-                    handleFileUpload={handleDataFileUpload}
-                    handleDelete={() => setData([])}
-                    handleResDownload={handleResDownload}
-                    fil={data}
-                />
-                <Download enable={data.length > 0} handleClick={startProcessing} />
+                <section className='flexV centerY'>
+                    <Dropbox
+                        icon={false}
+                        title='Data'
+                        handleDrop={handleDataDrop}
+                        type={true}
+                        handleFileUpload={handleDataFileUpload}
+                        handleDelete={() => setData([])}
+                        handleResDownload={handleResDownload}
+                        fil={data}
+                    />
+                    <Download enable={data.length > 0} handleClick={startProcessing} />
+                </section>
             </main>
         </>
     )

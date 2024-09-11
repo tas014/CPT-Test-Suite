@@ -20,7 +20,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />
   }, {
     path: "/trifasico",
-    element: <Monofasico />,
+    element: <Trifasico />,
     errorElement: <ErrorPage />
   }
 ])
