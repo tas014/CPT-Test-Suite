@@ -12,7 +12,7 @@ const Header = () => {
             </div>
             <div>
                 <nav>
-                    <ul className='flex'>
+                    <ul className='flexend'>
                         <li>
                             <Link className={(path === '/monofasico' || path === '/') ? 'nav-item nav-selected' : 'nav-item'} to={'/monofasico'}>Monofasico</Link>
                         </li>
