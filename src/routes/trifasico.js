@@ -4,7 +4,9 @@ import Dropbox from '../components/Dropbox'
 import Download from '../components/Download'
 import RESDownload from '../components/RESDownload'
 import Modal from '../components/Modal'
+import Tooltip from '../components/Tooltip'
 import { useState } from 'react'
+import { processTriData, printWorkbook } from '../assets/processing'
 
 
 const Trifasico = () => {
@@ -29,7 +31,13 @@ const Trifasico = () => {
         setRESVisible(false)
     }
     const startProcessing = () => {
-        console.log('processing')
+        console.log(data.length);
+        const output = processTriData(data);
+        output.then(r => {
+            printWorkbook(r.output);
+        }).catch(e => {
+            console.log(e)
+        })
     }
 
 
@@ -38,16 +46,20 @@ const Trifasico = () => {
         <>
             <Header />
             <main>
-                {RESVisible && <Modal hideComponent={hideRES}>
+                {/*  {RESVisible && <Modal hideComponent={hideRES}>
                     <RESDownload data={data} />
-                </Modal>}
-                <h1>Trifasico</h1>
+                </Modal>} */}
+                <div className='main-title-container'>
+                    <Tooltip />
+                    <h1>Calidad de Producto Técnico</h1>
+                </div>
                 <section className='flexV centerY'>
                     <Dropbox
                         icon={false}
                         title='Data'
                         handleDrop={handleDataDrop}
                         type={true}
+                        res={false}
                         handleFileUpload={handleDataFileUpload}
                         handleDelete={() => setData([])}
                         handleResDownload={handleResDownload}

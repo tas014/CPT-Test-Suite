@@ -158,7 +158,6 @@ h3 {
 
 header {
   background-color: #101010;
-  padding: 1em 3em;
   color: white;
   display: flex;
   justify-content: space-between;
@@ -201,6 +200,7 @@ header {
 
 header>div {
   width: 50%;
+  margin-right: 4em;
 }
 
 header>div:nth-of-type(2) {
@@ -209,18 +209,26 @@ header>div:nth-of-type(2) {
 
 .logo {
   width: 20%;
+  margin-left: 4em;
 }
 
 .nav-item {
   text-decoration: none;
-  color: rgb(75, 75, 75);
-  padding: 0px 1em;
+  color: whitesmoke;
+  padding: 1.5em 1em;
+  display: inline-block;
+  font-size: 1.3em;
+  transition: 0.3s;
 }
 
 .nav-selected {
-  text-decoration: underline;
-  font-size: 1.2em;
-  color: white;
+  background-color: whitesmoke;
+  color: black;
+}
+
+.nav-item:hover {
+  background-color: whitesmoke;
+  color: black;
 }
 
 .dropbox {

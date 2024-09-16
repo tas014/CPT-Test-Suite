@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 // PERCENTAGE
 
 const percentage = (num, perc) => {
-    return (num/100)*perc
+    return (num / 100) * perc
 }
 
 // CONSTANTES
@@ -18,7 +18,7 @@ const penaltyAmount = percentage(nominal, 8);
 const dataLine = 5;
 const minValidReadings = 480;
 
-// MAIN FUNCTION
+//COMMON FUNCTIONS
 
 const resetLocalVars = () => {
     dataArr = [];
@@ -27,12 +27,9 @@ const resetLocalVars = () => {
     energyNamesOrder = [];
 }
 
-const processData = async (energyFile, readingsData) => {
-    resetLocalVars();
-    const warnings = []; 
-
-    fetch('excel/CDP.xlsm').then(res=>res.arrayBuffer()).then(ab=> {
-        const wb = XLSX.read(ab, {type:'binary'});
+const fetchFixedFile = () => {
+    fetch('excel/CDP.xlsm').then(res => res.arrayBuffer()).then(ab => {
+        const wb = XLSX.read(ab, { type: 'binary' });
         const sheetName = wb.SheetNames[1];
         const sheet = wb.Sheets[sheetName];
         const staticData = XLSX.utils.sheet_to_json(sheet);
@@ -42,11 +39,20 @@ const processData = async (energyFile, readingsData) => {
         const secondStaticData = XLSX.utils.sheet_to_json(secondSheet);
         staticArr.push(secondStaticData);
     })
+}
+
+// MAIN MONOPHASIC FUNCTION
+
+const processMonoData = async (energyFile, readingsData) => {
+    resetLocalVars();
+    fetchFixedFile();
+    const warnings = [];
+
     const energyData = parseFileToJSON(energyFile, false, energyArr);
-    
-    const generateOutput = new Promise ((res, rej) => {
+
+    const generateOutput = new Promise((res, rej) => {
         energyData.catch(ex => {
-            rej(ex+'Hubo un problema al leer el archivo de Energía Entregada (campo de la izquierda).')
+            rej(ex + 'Hubo un problema al leer el archivo de Energía Entregada (campo de la izquierda).')
         })
         const updateWaiter = setInterval(() => {
             if (energyArr.length !== 0 && staticArr.length !== 0) {
@@ -64,17 +70,42 @@ const processData = async (energyFile, readingsData) => {
                 if (orderedData.notInEnergyFile.length > 0) {
                     warnings.push(`No se encontraron los archivos para los códigos ENRE: ${orderedData.notInEnergyFile.map(code => `${code} ,`)}.`)
                 }
-                const outputFile = checkTotalPenalty(orderedData, readingsData);
+                const outputFile = checkTotalMonoPenalty(orderedData, readingsData);
                 res({
                     output: outputFile,
                     warnings
-                })    
+                })
             }
         }, 100)
     })
-    
-    return generateOutput 
+
+    return generateOutput
 }
+
+// MAIN TRIPHASIC FUNCTION
+const processTriData = (readingsData) => {
+    resetLocalVars();
+    fetchFixedFile();
+    const warnings = [];
+
+    const generateOutput = new Promise((res, rej) => {
+        parseDataReadings(readingsData);
+        const updateWaiter = setInterval(() => {
+            if (readingsData.length === dataArr.length && staticArr.length !== 0) {
+                clearInterval(updateWaiter);
+                const outputFile = checkTotalTriPenalty(dataArr, readingsData)
+                outputFile.then(r => {
+                    res(r);
+                    console.log(r);
+                }).catch(e => {
+                    rej(e);
+                })
+            }
+        }, 100)
+    })
+    return generateOutput
+}
+
 
 // FILTER, TRANSFORM & ARRANGE DATA
 
@@ -84,8 +115,8 @@ const orderData = (datalist, energyFile) => {
     const notInEnergyFile = [];
     const dataKeys = Object.keys(datalist);
     const iterations = energyFile[0].length > dataKeys.length ? energyFile[0].length : dataKeys.length;
-    dataKeys.forEach( (key, ind) => {
-        for (let i=0; i < iterations; i++) {
+    dataKeys.forEach((key, ind) => {
+        for (let i = 0; i < iterations; i++) {
             const fileCode = parseFileName(datalist[dataKeys[ind]].name)
             if (ind < energyFile[0].length) {
                 if (fileCode === energyFile[0][i][code]) {
@@ -119,7 +150,7 @@ const parseDataReadings = async data => {
     });
 }
 
-const parseFileToJSON = async (e, mult=false, targ) => {
+const parseFileToJSON = async (e, mult = false, targ) => {
     const reader = new FileReader();
     if (mult) {
         reader.readAsArrayBuffer(e)
@@ -128,7 +159,7 @@ const parseFileToJSON = async (e, mult=false, targ) => {
     }
     reader.onload = p => {
         const data = p.target.result;
-        const workbook = XLSX.read(data, {type:'binary'});
+        const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const parsedData = XLSX.utils.sheet_to_json(sheet);
@@ -138,7 +169,7 @@ const parseFileToJSON = async (e, mult=false, targ) => {
 
 // PENALIZACION INDIVIDUAL
 
-const findFormatKeys = arr => {
+const findMonoFormatKeys = arr => {
     let fecha, hora, UV, UVMax, UVMin, THDU, flicker, anorm;
     const currentKeys = Object.keys(arr[dataLine]);
     currentKeys.forEach(k => {
@@ -148,7 +179,7 @@ const findFormatKeys = arr => {
                 break;
             case 'Fecha':
                 fecha = k
-                break;    
+                break;
             case 'Hora':
                 hora = k
                 break;
@@ -166,7 +197,7 @@ const findFormatKeys = arr => {
                 break;
             case 'Anormalidad':
                 anorm = k
-                break;    
+                break;
             default:
                 break;
         }
@@ -188,16 +219,81 @@ const findFormatKeys = arr => {
     }
 }
 
+const findTriFormatKeys = arr => {
+    let fecha, hora, U1, U2, U3, totalEA, anorm;
+    const currentKeys = Object.keys(arr[dataLine]);
+
+    const parseWattFormat = (format, key) => {
+        let output;
+        if (format.toLowerCase() === 'kwh') {
+            output = {
+                format: true,
+                key
+            }
+        } else if (format.toLowerCase() === 'wh') {
+            output = {
+                format: false,
+                key
+            }
+        }
+        return output
+    }
+
+    currentKeys.forEach((key, ind) => {
+        switch (arr[dataLine][key]) {
+            case 'Fecha':
+                fecha = key
+                break;
+            case 'Hora':
+                hora = key
+                break;
+            case 'U1':
+                U1 = key
+                break;
+            case 'U2':
+                U2 = key
+                break;
+            case 'U3':
+                U3 = key
+                break;
+            case 'EA Total':
+                totalEA = parseWattFormat(arr[dataLine + 1][currentKeys[ind]], key)
+                break;
+            case 'Anormalidad':
+                anorm = key
+                break;
+
+            default:
+                break;
+        }
+    })
+    const checkArr = [fecha, hora, U1, U2, U3, totalEA, anorm];
+    if (checkArr.includes(undefined)) {
+        return false
+    } else {
+        return {
+            fecha,
+            hora,
+            U1,
+            U2,
+            U3,
+            totalEA,
+            anorm
+        }
+    }
+
+}
+
 const parseTime = time => {
     if (time) {
         const hour = parseInt(time.slice(0, time.indexOf(':')));
-        const mins = parseInt(time.slice(time.indexOf(':')+1, time.length));
-    
+        const mins = parseInt(time.slice(time.indexOf(':') + 1, time.length));
+
         return (hour * 60 + mins)
     }
 }
 
-const checkTotalPenalty = (arrObj, readings) => {
+const checkTotalMonoPenalty = (arrObj, readings) => {
     const arr = arrObj.orderedArr;
     const missing = [];
     const totalkeys = Object.keys(readings);
@@ -205,7 +301,7 @@ const checkTotalPenalty = (arrObj, readings) => {
     const invalidFiles = [];
     const keys = Object.keys(arr);
     let totalPenalty = 0;
-    
+
     totalkeys.forEach(e => {
         const name = parseFileName(readings[e].name);
         if (!energyNamesOrder.includes(name)) {
@@ -213,39 +309,35 @@ const checkTotalPenalty = (arrObj, readings) => {
         }
     })
 
-    const finishedProcessing = new Promise ((res, rej) => {
-        //console.log('calculating total penalty...')
+    const finishedProcessing = new Promise((res, rej) => {
         keys.forEach((file, ind) => {
             const parsed = [];
             parseFileToJSON(arr[file], true, parsed);
-            if (arr[file].name === '245S1410.dat') {
-                console.log('we here', ind)
-            }
             const fileName = parseFileName(arr[file].name);
-            const timer = setInterval(()=> {
+            const timer = setInterval(() => {
                 if (parsed.length === 1) {
-                    const output = checkIndividualPenalty(parsed[0], ind, fileName);
+                    const output = checkIndividualMonoPenalty(parsed[0], ind, fileName);
                     if (output === false) {
                         rej('Existen archivos con contenido inesperado. Proceso cancelado.')
                     }
                     if (output.valid && !output.empty) {
                         processedFiles.push(output);
-                        totalPenalty = totalPenalty + output.totalPenalty
+                        totalPenalty += output.totalPenalty
                     } else {
                         invalidFiles.push(output)
                     }
-                    clearInterval(timer)    
+                    clearInterval(timer)
                 }
             }, 5)
         })
-    
+
         const timer = setInterval(() => {
-            const totalProcessed = processedFiles.length + invalidFiles.length 
+            const totalProcessed = processedFiles.length + invalidFiles.length
             if (totalProcessed === keys.length) {
                 clearInterval(timer);
                 //console.log(`Finished processing ${processedFiles.length + invalidFiles.length + missing.length} files, of which ${invalidFiles.length} are invalid and ${missing.length} are missing required data. The total penalty is $${totalPenalty}.`)
                 res({
-                    output: generateOutput(processedFiles, invalidFiles ,missing),
+                    output: generateOutput(processedFiles, invalidFiles, missing),
                     penalty: totalPenalty
                 });
             }
@@ -255,29 +347,46 @@ const checkTotalPenalty = (arrObj, readings) => {
     return finishedProcessing
 }
 
-const isOverMinNom = (row, nomKey) => {
-    let fomrattedNum = row[nomKey].toString();
-    if (row[nomKey] > 250) {
-        if (fomrattedNum.length > 4) {
-            fomrattedNum = fomrattedNum.slice(0, fomrattedNum.length - 2) + '.' + fomrattedNum.slice(fomrattedNum.length - 2);
+const checkTotalTriPenalty = (data, readings) => {
+    const processedFiles = [];
+    const warnings = [];
+    const invalidFiles = [];
+    let totalPenalty = 0;
+
+    const finishedProcessing = new Promise((res, rej) => {
+        dataArr.forEach((arr, ind) => {
+            const fileName = parseFileName(readings[ind].name);
+            const individualOutput = checkIndividualTriPenalty(arr, fileName);
+            if (individualOutput) {
+                if (individualOutput.valid && !individualOutput.empty) {
+                    processedFiles.push(individualOutput);
+                    totalPenalty += individualOutput.totalPenalty
+                } else {
+                    invalidFiles.push(individualOutput)
+                }
+            } else {
+                warnings.push(data[ind].name)
+            }
+        })
+        if (warnings.length === dataArr.length) {
+            rej('Los archivos procesados no se corresponden al modelo Trifásico. Por favor verifique que los archivos que intenta procesar correspondan al formato seleccionado.')
         } else {
-            fomrattedNum = fomrattedNum.slice(0, fomrattedNum.length - 1) + '.' + fomrattedNum.slice(fomrattedNum.length - 1);
+            res({
+                warnings,
+                output: generateOutput(processedFiles, invalidFiles),
+                totalPenalty
+            })
         }
-    }
-    parseFloat(fomrattedNum);
-    if (fomrattedNum < MinNom) {
-        return false
-    } else {
-        return fomrattedNum
-    }
+    })
+    return finishedProcessing
 }
 
-const checkIndividualPenalty = (arr, fileInd, fileName) => {
+const checkIndividualMonoPenalty = (arr, fileInd, fileName) => {
     // AVAILABLE PARAMS { fecha, hora, UV, UVMax, UVMin, THDU, flicker, anorm }
-    if (findFormatKeys(arr) === false) {
+    if (findMonoFormatKeys(arr) === false) {
         return false
     }
-    const { fecha, hora, UV, UVMax, UVMin, THDU, flicker, anorm } = findFormatKeys(arr);
+    const { fecha, hora, UV, UVMax, UVMin, THDU, flicker, anorm } = findMonoFormatKeys(arr);
     let normalRows = 0;
     let totalKi = 0;
     let totalV = 0;
@@ -294,20 +403,20 @@ const checkIndividualPenalty = (arr, fileInd, fileName) => {
         //Check for the Abnormality property
         if (row[anorm] !== "A" && ind >= dataLine) {
             //Check for 15 min interval
-            let logDiff = parseTime(row[hora]) - parseTime(arr[ind-1][hora]);
+            let logDiff = parseTime(row[hora]) - parseTime(arr[ind - 1][hora]);
 
             //Check for instances under min nominal
-            const parsedV = parseFloat(isOverMinNom(row, UV));
+            const parsedV = isOverMinNom(row, UV);
             if (!parsedV) {
                 return false
             }
             //Check for 15 min interval
             if ((logDiff === 15 || logDiff === (-1425))) {
                 //Check for penalizable readings
-                if (parsedV > (nominal+penaltyAmount) || parsedV < (nominal-penaltyAmount)) {
+                if (parsedV > (nominal + penaltyAmount) || parsedV < (nominal - penaltyAmount)) {
                     //console.log(typeof(parsedV))
-                    const deviancy = getDeviancy(parsedV, nominal+penaltyAmount < parsedV);
-                    const deviancyParams = getDeviancyParams(parsedV, row[hora], fileName);
+                    const deviancy = getDeviancy(parsedV, nominal + penaltyAmount < parsedV);
+                    const deviancyParams = getMonoDeviancyParams(parsedV, row[hora], fileName);
                     if (!deviancyParams) {
                         return false
                     }
@@ -326,7 +435,7 @@ const checkIndividualPenalty = (arr, fileInd, fileName) => {
                 }
                 //Add to filter + add to relevant values
                 normalRows++
-                const coef = getTimeCoef(row[hora], findRow(fileName));
+                const coef = getMonoTimeCoef(row[hora], findRow(fileName));
                 if (!coef) {
                     return false
                 }
@@ -341,17 +450,17 @@ const checkIndividualPenalty = (arr, fileInd, fileName) => {
         }
         return false
     });
-    
+
     const isPenalizable = deviantRows.length > percentage(normalRows, 3);
 
     deviantRows.forEach(row => {
-        const energy = (row.deviancyParams.timeCoef/totalKi)*deliveredEnergy;
-        ESMC = ESMC + energy;
+        const energy = (row.deviancyParams.timeCoef / totalKi) * deliveredEnergy;
+        ESMC += energy;
         if (isPenalizable) {
             totalPenalty = totalPenalty + (row.deviancyParams.deviancyCoef * energy);
         }
     })
-    
+
     if (normalRows >= minValidReadings) {
         const outputObj = {
             ENRE: energyNamesOrder[fileInd],
@@ -365,9 +474,9 @@ const checkIndividualPenalty = (arr, fileInd, fileName) => {
             isPenalizable,
             ESMC,
             deliveredEnergy,
-            totalRegistries: arr.length-dataLine-2,
+            totalRegistries: arr.length - dataLine - 2,
             firstRegistryDate,
-            lastRegistryDate: `${filteredArr[filteredArr.length-1][hora]} ${filteredArr[filteredArr.length-1][fecha]}`,
+            lastRegistryDate: `${filteredArr[filteredArr.length - 1][hora]} ${filteredArr[filteredArr.length - 1][fecha]}`,
             empty: false
         }
         return outputObj
@@ -378,76 +487,218 @@ const checkIndividualPenalty = (arr, fileInd, fileName) => {
             empty: false
         }
     }
-} 
+}
+
+const checkIndividualTriPenalty = (arr, ENRE) => {
+    if (!findTriFormatKeys(arr)) {
+        return false
+    }
+    const { fecha, hora, U1, U2, U3, totalEA, anorm } = findTriFormatKeys(arr);
+    const warnings = [];
+    const deviantRows = [];
+
+    let totalPenalty = 0;
+    let firstRegistryFlag = true;
+    let firstRegistryDate;
+    let penaltyOver = 0;
+    let penaltyUnder = 0;
+    let normalRows = 0;
+    let ESMC = 0;
+    let deliveredEnergy = 0;
+
+    const triCurrentEnergy = (value, format) => {
+        if (format) {
+            return parseFloat(value / 1000)
+        } else {
+            return parseFloat(value / 1000)
+        }
+    }
+
+    const filteredArr = arr.filter((row, ind) => {
+        //Check for the Abnormality property
+        if (row[anorm] !== "A" && ind >= dataLine) {
+            //Check for instances under min nominal
+            const parsedV = isOverMinNom(row, { U1, U2, U3 });
+            if (!parsedV) {
+                return false
+            }
+
+            //Check for 15 min interval
+            let logDiff = parseTime(row[hora]) - parseTime(arr[ind - 1][hora]);
+            if ((logDiff === 15 || logDiff === (-1425))) {
+                const currentEnergy = triCurrentEnergy(row[totalEA.key], totalEA.format);
+                normalRows++;
+                deliveredEnergy += currentEnergy;
+                //Check for penalizable readings
+                const penalizedReading = isTriReadingPenalized({ row, U1, U2, U3 });
+                if (penalizedReading) {
+                    const deviancy = getDeviancy(penalizedReading, (nominal + penaltyAmount) < penalizedReading);
+                    if (deviancy) {
+                        deviantRows.push({
+                            value: penalizedReading,
+                            deviancy,
+                            energy: currentEnergy,
+                            time: row[hora]
+                        })
+                        if (deviancy > 0) {
+                            penaltyOver++
+                        } else {
+                            penaltyUnder++
+                        }
+                    }
+                }
+                if (firstRegistryFlag) {
+                    firstRegistryDate = `${row[hora]} ${row[fecha]}`
+                }
+                return true
+            }
+        }
+    })
+    const isPenalizable = deviantRows.length > percentage(normalRows, 3);
+    if (isPenalizable) {
+        deviantRows.forEach(row => {
+            const deviancyCoef = getDeviancyCoef(row.deviancy);
+            ESMC += row.energy;
+            if (deviancyCoef) {
+                totalPenalty += row.energy * deviancyCoef
+            } else {
+                warnings.push(`No se encontro el coeficiente de desvio.`);
+            }
+        })
+    }
+    if (normalRows >= minValidReadings) {
+        return {
+            ENRE,
+            valid: true,
+            filteredArr,
+            deviantRows,
+            totalPenalty,
+            penaltyOver,
+            penaltyUnder,
+            isPenalizable,
+            ESMC,
+            deliveredEnergy,
+            totalRegistries: arr.length - dataLine - 2,
+            firstRegistryDate,
+            lastRegistryDate: `${filteredArr[filteredArr.length - 1][hora]} ${filteredArr[filteredArr.length - 1][fecha]}`,
+            empty: false
+        }
+
+    } else {
+        return {
+            ENRE,
+            valid: false,
+            empty: false
+        }
+    }
+}
+
+const isOverMinNom = (row, nomKey) => {
+    if (typeof (nomKey) !== 'object') {
+        let formattedNum = row[nomKey].toString();
+        if (row[nomKey] > 250) {
+            if (formattedNum.length > 4) {
+                formattedNum = formattedNum.slice(0, formattedNum.length - 2) + '.' + formattedNum.slice(formattedNum.length - 2);
+            } else {
+                formattedNum = formattedNum.slice(0, formattedNum.length - 1) + '.' + formattedNum.slice(formattedNum.length - 1);
+            }
+        }
+        parseFloat(formattedNum);
+        if (formattedNum <= MinNom) {
+            return false
+        } else {
+            return formattedNum
+        }
+    } else {
+        const outputObj = {};
+        //nomKey en este caso tiene de estructura {U1: U1Key, U2: U2Key, U3: U3Key, ...}
+        for (let key in nomKey) {
+            let formattedNum = row[nomKey[key]].toString();
+            if (row[nomKey[key]] > 250) {
+                if (formattedNum.length > 4) {
+                    formattedNum = formattedNum.slice(0, formattedNum.length - 2) + '.' + formattedNum.slice(formattedNum.length - 2);
+                } else {
+                    formattedNum = formattedNum.slice(0, formattedNum.length - 1) + '.' + formattedNum.slice(formattedNum.length - 1);
+                }
+            }
+            if (formattedNum > MinNom) {
+                outputObj[key] = parseFloat(formattedNum);
+            } else {
+                return false
+            }
+        }
+        return outputObj
+    }
+}
 
 const getDeviancy = (v, OU) => {
     let output = null;
     if (OU) {
-        if (v >= nominal+percentage(nominal, 8) && v < nominal+percentage(nominal, 9) ) {
+        if (v >= nominal + percentage(nominal, 8) && v < nominal + percentage(nominal, 9)) {
             output = 8
         }
-        if (v >= nominal+percentage(nominal, 9) && v < nominal+percentage(nominal, 10) ) {
+        if (v >= nominal + percentage(nominal, 9) && v < nominal + percentage(nominal, 10)) {
             output = 9
         }
-        if (v >= nominal+percentage(nominal, 10) && v < nominal+percentage(nominal, 11) ) {
+        if (v >= nominal + percentage(nominal, 10) && v < nominal + percentage(nominal, 11)) {
             output = 10
         }
-        if (v >= nominal+percentage(nominal, 11) && v < nominal+percentage(nominal, 12) ) {
+        if (v >= nominal + percentage(nominal, 11) && v < nominal + percentage(nominal, 12)) {
             output = 11
         }
-        if (v >= nominal+percentage(nominal, 12) && v < nominal+percentage(nominal, 13) ) {
+        if (v >= nominal + percentage(nominal, 12) && v < nominal + percentage(nominal, 13)) {
             output = 12
         }
-        if (v >= nominal+percentage(nominal, 13) && v < nominal+percentage(nominal, 14) ) {
+        if (v >= nominal + percentage(nominal, 13) && v < nominal + percentage(nominal, 14)) {
             output = 13
         }
-        if (v >= nominal+percentage(nominal, 14) && v < nominal+percentage(nominal, 15) ) {
+        if (v >= nominal + percentage(nominal, 14) && v < nominal + percentage(nominal, 15)) {
             output = 14
         }
-        if (v >= nominal+percentage(nominal, 15) && v < nominal+percentage(nominal, 16) ) {
+        if (v >= nominal + percentage(nominal, 15) && v < nominal + percentage(nominal, 16)) {
             output = 15
         }
-        if (v >= nominal+percentage(nominal, 16) && v < nominal+percentage(nominal, 17) ) {
+        if (v >= nominal + percentage(nominal, 16) && v < nominal + percentage(nominal, 17)) {
             output = 16
         }
-        if (v >= nominal+percentage(nominal, 17) && v < nominal+percentage(nominal, 18) ) {
+        if (v >= nominal + percentage(nominal, 17) && v < nominal + percentage(nominal, 18)) {
             output = 17
         }
-        if (v >= nominal+percentage(nominal, 18)) {
+        if (v >= nominal + percentage(nominal, 18)) {
             output = 18
         }
     } else {
-        if (v <= nominal-percentage(nominal, 8) && v > nominal-percentage(nominal, 9) ) {
+        if (v <= nominal - percentage(nominal, 8) && v > nominal - percentage(nominal, 9)) {
             output = -8
         }
-        if (v <= nominal-percentage(nominal, 9) && v > nominal-percentage(nominal, 10) ) {
+        if (v <= nominal - percentage(nominal, 9) && v > nominal - percentage(nominal, 10)) {
             output = -9
         }
-        if (v <= nominal-percentage(nominal, 10) && v > nominal-percentage(nominal, 11) ) {
+        if (v <= nominal - percentage(nominal, 10) && v > nominal - percentage(nominal, 11)) {
             output = -10
         }
-        if (v <= nominal-percentage(nominal, 11) && v > nominal-percentage(nominal, 12) ) {
+        if (v <= nominal - percentage(nominal, 11) && v > nominal - percentage(nominal, 12)) {
             output = -11
         }
-        if (v <= nominal-percentage(nominal, 12) && v > nominal-percentage(nominal, 13) ) {
+        if (v <= nominal - percentage(nominal, 12) && v > nominal - percentage(nominal, 13)) {
             output = -12
         }
-        if (v <= nominal-percentage(nominal, 13) && v > nominal-percentage(nominal, 14) ) {
+        if (v <= nominal - percentage(nominal, 13) && v > nominal - percentage(nominal, 14)) {
             output = -13
         }
-        if (v <= nominal-percentage(nominal, 14) && v > nominal-percentage(nominal, 15) ) {
+        if (v <= nominal - percentage(nominal, 14) && v > nominal - percentage(nominal, 15)) {
             output = -14
         }
-        if (v <= nominal-percentage(nominal, 15) && v > nominal-percentage(nominal, 16) ) {
+        if (v <= nominal - percentage(nominal, 15) && v > nominal - percentage(nominal, 16)) {
             output = -15
         }
-        if (v <= nominal-percentage(nominal, 16) && v > nominal-percentage(nominal, 17) ) {
+        if (v <= nominal - percentage(nominal, 16) && v > nominal - percentage(nominal, 17)) {
             output = -16
         }
-        if (v <= nominal-percentage(nominal, 17) && v > nominal-percentage(nominal, 18) ) {
+        if (v <= nominal - percentage(nominal, 17) && v > nominal - percentage(nominal, 18)) {
             output = -17
         }
-        if (v <= nominal-percentage(nominal, 18)) {
+        if (v <= nominal - percentage(nominal, 18)) {
             output = -18
         }
     }
@@ -458,12 +709,12 @@ const findRow = fileName => {
     return energyArr[0].filter(row => row['Codigo ENRE'] === fileName)[0];
 }
 
-const getDeviancyParams = (v, time, fileName) => {
+const getMonoDeviancyParams = (v, time, fileName) => {
     const energyRow = findRow(fileName);
-    const deviancy = getDeviancy(v, v > nominal+penaltyAmount);
+    const deviancy = getDeviancy(v, v > nominal + penaltyAmount);
     const staticKeysEnergy = Object.keys(energyArr[0][0]);
     const deviancyCoef = getDeviancyCoef(deviancy);
-    const timeCoef = getTimeCoef(time, energyRow);
+    const timeCoef = getMonoTimeCoef(time, energyRow);
     if (!timeCoef) {
         return false
     }
@@ -473,7 +724,7 @@ const getDeviancyParams = (v, time, fileName) => {
     }
     const output = {
         deviancyCoef,
-        timeCoef, 
+        timeCoef,
         energyData
     }
     return output;
@@ -485,7 +736,7 @@ const getFileEnergy = fileInd => {
     return energyObj[0]['Energía [kWH]'];
 }
 
-const getTimeCoef = (time, energyRow) => {
+const getMonoTimeCoef = (time, energyRow) => {
     const formattedTime = formatTime(time);
     const staticKeysTime = Object.keys(staticArr[0][0]);
     const staticKeysEnergy = Object.keys(energyArr[0][0]);
@@ -507,20 +758,77 @@ const formatTime = time => {
     if (ind > 1) {
         return time.slice(0, 2);
     } else {
-        return '0' + time.slice(0,1);
+        return '0' + time.slice(0, 1);
     }
 }
 
 const getDeviancyCoef = deviancy => {
     const staticKeysV = Object.keys(staticArr[1][0]);
-    const deviancyCoefArr = staticArr[1].filter(row => row[staticKeysV[0]] === Math.abs(deviancy/100));
+    const deviancyCoefArr = staticArr[1].filter(row => row[staticKeysV[0]] === Math.abs(deviancy / 100));
     const deviancyCoef = deviancyCoefArr[0][staticKeysV[1]];
     return deviancyCoef
 }
 
+const isTriReadingPenalized = info => {
+    const { row, U1, U2, U3 } = info;
+    const parsedU1 = isOverMinNom(row, U1);
+    const parsedU2 = isOverMinNom(row, U2)
+    const parsedU3 = isOverMinNom(row, U3)
+    let highestDeviancyArr = [];
+
+    if (parsedU1 > (nominal + penaltyAmount) || parsedU1 < (nominal - penaltyAmount)) {
+        if (parsedU1 > (nominal + penaltyAmount)) {
+            highestDeviancyArr.push({
+                value: parsedU1,
+                deviancy: parsedU1 - (nominal + penaltyAmount)
+            })
+        }
+        if (parsedU1 < (nominal - penaltyAmount)) {
+            highestDeviancyArr.push({
+                value: parsedU1,
+                deviancy: (nominal - penaltyAmount) - parsedU1
+            })
+        }
+    }
+    if (parsedU2 > (nominal + penaltyAmount) || parsedU2 < (nominal - penaltyAmount)) {
+        if (parsedU2 > (nominal + penaltyAmount)) {
+            highestDeviancyArr.push({
+                value: parsedU2,
+                deviancy: parsedU2 - (nominal + penaltyAmount)
+            })
+        }
+        if (parsedU2 < (nominal - penaltyAmount)) {
+            highestDeviancyArr.push({
+                value: parsedU2,
+                deviancy: (nominal - penaltyAmount) - parsedU2
+            })
+        }
+    }
+    if (parsedU3 > (nominal + penaltyAmount) || parsedU3 < (nominal - penaltyAmount)) {
+        if (parsedU3 > (nominal + penaltyAmount)) {
+            highestDeviancyArr.push({
+                value: parsedU3,
+                deviancy: parsedU3 - (nominal + penaltyAmount)
+            })
+        }
+        if (parsedU3 < (nominal - penaltyAmount)) {
+            highestDeviancyArr.push({
+                value: parsedU3,
+                deviancy: (nominal - penaltyAmount) - parsedU3
+            })
+        }
+    }
+    if (highestDeviancyArr.length === 0) {
+        return false
+    } else {
+        highestDeviancyArr.sort((a, b) => b.deviancy - a.deviancy);
+        return highestDeviancyArr[0].value;
+    }
+}
+
 // EXCEL OUTPUT
 
-const generateOutput = (rows, invalid ,missing) => {
+const generateOutput = (rows, invalid = [], missing = []) => {
 
     const formattedRows = rows.map(row => prepareForOutput(row))
     invalid.forEach(obj => {
@@ -534,11 +842,11 @@ const generateOutput = (rows, invalid ,missing) => {
     })
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(formattedRows);
-    XLSX.utils.sheet_add_aoa(worksheet, [["NRO ENRE","Medición Válida","Medición Penalizada","Registros Totales","Registros Válidos","Registros Penalizados","Registros con Sobre Tensión","Registros con Baja Tensión","Energía SMC [kW/H]","Penalización [AR$]","Energía Entregada [kW/H]", "Semestre", "Fecha Procesamiento"]], { origin: "A1" });
+    XLSX.utils.sheet_add_aoa(worksheet, [["NRO ENRE", "Medición Válida", "Medición Penalizada", "Registros Totales", "Registros Válidos", "Registros Penalizados", "Registros con Sobre Tensión", "Registros con Baja Tensión", "Energía SMC [kW/H]", "Penalización [AR$]", "Energía Entregada [kW/H]", "Semestre", "Fecha Procesamiento"]], { origin: "A1" });
     XLSX.utils.book_append_sheet(workbook, worksheet, "Output");
     worksheet["!cols"] = [];
     const max_width = formattedRows.reduce((w, r) => Math.max(w, "Registros con Sobre Tensión".length), 10);
-    for (let i=0; i < Object.keys(formattedRows[0]).length; i++) {
+    for (let i = 0; i < Object.keys(formattedRows[0]).length; i++) {
         worksheet["!cols"].push({ wch: max_width });
     }
 
@@ -546,7 +854,6 @@ const generateOutput = (rows, invalid ,missing) => {
 }
 
 const prepareForOutput = row => {
-
     // NRO_ENRE VALIDO DESVIOxLINEA(menos de 3% pones 1) RES521-24
 
     let NRO_ENRE, Medicion_Valida, Medicion_Penalizada, Registros_Totales, Registros_Validos, Registros_Penalizados, Registros_con_sobretension, Registros_con_baja_tension, Energia_SMC, Penalizacion, Energia_Entregada, Semestre, d, currentDate
@@ -586,8 +893,8 @@ const prepareForOutput = row => {
             }
         } else {
             NRO_ENRE = row.ENRE;
-            Medicion_Valida ='Falso';
-            Medicion_Penalizada ='Falso';
+            Medicion_Valida = 'Falso';
+            Medicion_Penalizada = 'Falso';
             Registros_Totales = '-';
             Registros_Validos = '-';
             Registros_Penalizados = '-';
@@ -601,20 +908,20 @@ const prepareForOutput = row => {
             currentDate = [d.getDate(), d.getMonth(), d.getFullYear()]
         }
     } else {
-            NRO_ENRE = row.ENRE;
-            Medicion_Valida ='-';
-            Medicion_Penalizada ='-';
-            Registros_Totales = '-';
-            Registros_Validos = '-';
-            Registros_Penalizados = '-';
-            Registros_con_sobretension = '-';
-            Registros_con_baja_tension = '-';
-            Energia_SMC = '-';
-            Penalizacion = '-';
-            Energia_Entregada = 'Sin Datos';
-            Semestre = '-';
-            d = new Date();
-            currentDate = [d.getDate(), d.getMonth(), d.getFullYear()]
+        NRO_ENRE = row.ENRE;
+        Medicion_Valida = '-';
+        Medicion_Penalizada = '-';
+        Registros_Totales = '-';
+        Registros_Validos = '-';
+        Registros_Penalizados = '-';
+        Registros_con_sobretension = '-';
+        Registros_con_baja_tension = '-';
+        Energia_SMC = '-';
+        Penalizacion = '-';
+        Energia_Entregada = 'Sin Datos';
+        Semestre = '-';
+        d = new Date();
+        currentDate = [d.getDate(), d.getMonth(), d.getFullYear()]
     }
 
     const output = {
@@ -630,7 +937,7 @@ const prepareForOutput = row => {
         Penalizacion,
         Energia_Entregada,
         Semestre,
-        Fecha_Procesamiento: `${currentDate[0]}/${currentDate[1]+1}/${currentDate[2]}`,
+        Fecha_Procesamiento: `${currentDate[0]}/${currentDate[1] + 1}/${currentDate[2]}`,
     }
 
     return output
@@ -638,8 +945,8 @@ const prepareForOutput = row => {
 
 const printWorkbook = wb => {
     XLSX.writeFile(wb, "output.xlsx", { compression: true });
-} 
+}
 
 // EXPORT
 
-export {processData, printWorkbook}
+export { processMonoData, processTriData, printWorkbook }

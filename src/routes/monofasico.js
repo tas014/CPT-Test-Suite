@@ -1,6 +1,6 @@
 import Dropbox from '../components/Dropbox';
 import Download from '../components/Download';
-import { processData, printWorkbook } from '../assets/processing';
+import { processMonoData, printWorkbook } from '../assets/processing';
 import { useState } from 'react';
 import useStateWithCallback from 'use-state-with-callback';
 import OutputScreen from '../components/OutputScreen';
@@ -134,7 +134,7 @@ function Monofasico() {
   const startProcessing = () => {
     resetProcess();
     if (processTrigger) {
-      const output = processData(energyFile, data);
+      const output = processMonoData(energyFile, data);
       output.then(res => {
         const { output, warnings } = res;
         setWarnings(warnings);
@@ -206,6 +206,7 @@ function Monofasico() {
             title='Data'
             handleDrop={handleDataDrop}
             type={true}
+            res={true}
             handleFileUpload={handleDataFileUpload}
             handleDelete={() => setData([])}
             handleResDownload={handleResDownload}
