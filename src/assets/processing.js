@@ -96,7 +96,6 @@ const processTriData = (readingsData) => {
                 const outputFile = checkTotalTriPenalty(dataArr, readingsData)
                 outputFile.then(r => {
                     res(r);
-                    console.log(r);
                 }).catch(e => {
                     rej(e);
                 })
@@ -360,7 +359,7 @@ const checkTotalTriPenalty = (data, readings) => {
             if (individualOutput) {
                 if (individualOutput.valid && !individualOutput.empty) {
                     processedFiles.push(individualOutput);
-                    totalPenalty += individualOutput.totalPenalty
+                    totalPenalty += individualOutput.totalPenalty;
                 } else {
                     invalidFiles.push(individualOutput)
                 }

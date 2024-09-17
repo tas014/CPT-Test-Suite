@@ -4,6 +4,7 @@ import Dropbox from '../components/Dropbox'
 import Download from '../components/Download'
 import RESDownload from '../components/RESDownload'
 import Modal from '../components/Modal'
+import OutputScreen from '../components/OutputScreen'
 import Tooltip from '../components/Tooltip'
 import { useState } from 'react'
 import { processTriData, printWorkbook } from '../assets/processing'
@@ -11,8 +12,12 @@ import { processTriData, printWorkbook } from '../assets/processing'
 
 const Trifasico = () => {
     const [data, setData] = useState([]);
-    const [isVisible, setIsVisible] = useState(false);
+    const [processTrigger, setProcessTrigger] = useState(false);
     const [workbook, setWorkbook] = useState(false);
+    const [warnings, setWarnings] = useState([]);
+    const [penalty, setPenalty] = useState('calculando...');
+    const [errs, setErrs] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
     const [ready, setReady] = useState(false);
     const [RESVisible, setRESVisible] = useState(false);
 
@@ -30,20 +35,45 @@ const Trifasico = () => {
         e.stopPropagation();
         setRESVisible(false)
     }
+    const handleDownload = e => {
+        e.stopPropagation();
+        if (ready) {
+            printWorkbook(workbook)
+        }
+    }
+    const hideComponent = e => {
+        e.stopPropagation();
+        setWorkbook(false);
+        setIsVisible(false);
+        setReady(false);
+    }
+    const resetProcess = () => {
+        setReady(false);
+        setPenalty('calculando...');
+        setWarnings([]);
+        setErrs(false);
+        setWorkbook(false);
+    }
+
     const startProcessing = () => {
-        console.log(data.length);
+        resetProcess();
         const output = processTriData(data);
         output.then(r => {
-            printWorkbook(r.output);
+            console.log(r);
+            const { output, totalPenalty, warnings } = r;
+            setWorkbook(output);
+            setReady(true);
+            setPenalty(`AR$ ${Math.round(totalPenalty * 100) / 100}`);
+            setWarnings(warnings);
         }).catch(e => {
-            console.log(e)
+            setErrs(e)
         })
+        setIsVisible(true);
     }
 
 
-
     return (
-        <>
+        <body>
             <Header />
             <main>
                 {/*  {RESVisible && <Modal hideComponent={hideRES}>
@@ -68,7 +98,16 @@ const Trifasico = () => {
                     <Download enable={data.length > 0} handleClick={startProcessing} />
                 </section>
             </main>
-        </>
+            {isVisible &&
+                <OutputScreen
+                    handleDownload={handleDownload}
+                    hideComponent={hideComponent}
+                    warnings={warnings}
+                    penalty={penalty}
+                    fail={errs}
+                    ready={ready}
+                />}
+        </body>
     )
 }
 
