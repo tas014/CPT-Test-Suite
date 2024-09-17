@@ -427,6 +427,7 @@ h2 {
   background-color: #EAEAEA;
   border-radius: 10px;
   padding: 3em;
+  max-width: 70%;
 }
 
 .output-container h3 {
