@@ -856,7 +856,7 @@ const generateOutput = (rows, invalid = [], missing = []) => {
     })
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(formattedRows);
-    XLSX.utils.sheet_add_aoa(worksheet, [["NRO ENRE", "Medición Válida", "Medición Penalizada", "Registros Totales", "Registros Válidos", "Registros Penalizados", "Registros con Sobre Tensión", "Registros con Baja Tensión", "Energía SMC [kW/H]", "Penalización [AR$]", "Energía Entregada [kWh]", "Semestre", "Fecha Procesamiento"]], { origin: "A1" });
+    XLSX.utils.sheet_add_aoa(worksheet, [["NRO ENRE", "Medición Válida", "Medición Penalizada", "Registros Totales", "Registros Válidos", "Registros Penalizados", "Registros con Sobre Tensión", "Registros con Baja Tensión", "Energía SMC [kWh]", "Penalización [AR$]", "Energía Entregada [kWh]", "Semestre", "Fecha Procesamiento"]], { origin: "A1" });
     XLSX.utils.book_append_sheet(workbook, worksheet, "Output");
     worksheet["!cols"] = [];
     const max_width = formattedRows.reduce((w, r) => Math.max(w, "Registros con Sobre Tensión".length), 10);
