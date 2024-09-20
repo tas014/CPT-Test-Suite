@@ -59,7 +59,7 @@ const Trifasico = () => {
         resetProcess();
         const output = processTriData(data);
         output.then(r => {
-            console.log(r);
+            //console.log(r);
             const { output, totalPenalty, warnings } = r;
             setWorkbook(output);
             setReady(true);
@@ -73,7 +73,7 @@ const Trifasico = () => {
 
 
     return (
-        <body>
+        <>
             <Header />
             <main>
                 {/*  {RESVisible && <Modal hideComponent={hideRES}>
@@ -107,7 +107,7 @@ const Trifasico = () => {
                     fail={errs}
                     ready={ready}
                 />}
-        </body>
+        </>
     )
 }
 

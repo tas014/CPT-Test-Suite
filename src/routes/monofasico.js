@@ -180,7 +180,7 @@ function Monofasico() {
   }
 
   return (
-    <body>
+    <>
       <Header />
       <main>
         {RESVisible && <Modal hideComponent={hideRES}>
@@ -224,7 +224,7 @@ function Monofasico() {
             ready={ready}
           />}
       </main>
-    </body>
+    </>
   );
 }
 

@@ -89,11 +89,11 @@ const processTriData = (readingsData) => {
     const warnings = [];
 
     const generateOutput = new Promise((res, rej) => {
-        parseDataReadings(readingsData);
+        parseDataReadings(readingsData, false);
         const updateWaiter = setInterval(() => {
             if (readingsData.length === dataArr.length && staticArr.length !== 0) {
                 clearInterval(updateWaiter);
-                const outputFile = checkTotalTriPenalty(dataArr, readingsData)
+                const outputFile = checkTotalTriPenalty(dataArr);
                 outputFile.then(r => {
                     res(r);
                 }).catch(e => {
@@ -141,15 +141,22 @@ const parseFileName = file => {
     return output
 }
 
-const parseDataReadings = async data => {
-    const dataArray = [];
-    Object.keys(data).forEach(async e => {
-        const parsed = await parseFileToJSON(data[e], true, dataArr)
-        dataArray.push(parsed)
-    });
+const parseDataReadings = async (data, monophasic = true) => {
+    if (monophasic) {
+        const dataArray = [];
+        Object.keys(data).forEach(async e => {
+            const parsed = await parseFileToJSON(data[e], true, dataArr)
+            dataArray.push(parsed)
+        });
+    } else {
+        const dataArray = [];
+        Object.keys(data).forEach(async e => {
+            const parsed = await parseFileToJSON(data[e], true, dataArr, monophasic);
+        })
+    }
 }
 
-const parseFileToJSON = async (e, mult = false, targ) => {
+const parseFileToJSON = async (e, mult = false, targ, monophasic) => {
     const reader = new FileReader();
     if (mult) {
         reader.readAsArrayBuffer(e)
@@ -162,7 +169,14 @@ const parseFileToJSON = async (e, mult = false, targ) => {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const parsedData = XLSX.utils.sheet_to_json(sheet);
-        targ.push(parsedData)
+        if (monophasic) {
+            targ.push(parsedData)
+        } else {
+            targ.push({
+                content: parsedData,
+                ENRE: e.name
+            })
+        }
     }
 }
 
@@ -346,16 +360,16 @@ const checkTotalMonoPenalty = (arrObj, readings) => {
     return finishedProcessing
 }
 
-const checkTotalTriPenalty = (data, readings) => {
+const checkTotalTriPenalty = data => {
     const processedFiles = [];
     const warnings = [];
     const invalidFiles = [];
     let totalPenalty = 0;
 
     const finishedProcessing = new Promise((res, rej) => {
-        dataArr.forEach((arr, ind) => {
-            const fileName = parseFileName(readings[ind].name);
-            const individualOutput = checkIndividualTriPenalty(arr, fileName);
+        dataArr.forEach(arr => {
+            const fileName = parseFileName(arr.ENRE);
+            const individualOutput = checkIndividualTriPenalty(arr.content, fileName);
             if (individualOutput) {
                 if (individualOutput.valid && !individualOutput.empty) {
                     processedFiles.push(individualOutput);
@@ -364,7 +378,7 @@ const checkTotalTriPenalty = (data, readings) => {
                     invalidFiles.push(individualOutput)
                 }
             } else {
-                warnings.push(data[ind].name)
+                warnings.push(data.ENRE)
             }
         })
         if (warnings.length === dataArr.length) {
@@ -506,11 +520,12 @@ const checkIndividualTriPenalty = (arr, ENRE) => {
     let deliveredEnergy = 0;
 
     const triCurrentEnergy = (value, format) => {
-        if (format) {
+        /* if (format) {
             return parseFloat(value / 1000)
         } else {
             return parseFloat(value / 1000)
-        }
+        } */
+        return parseFloat(value / 1000)
     }
 
     const filteredArr = arr.filter((row, ind) => {
@@ -841,7 +856,7 @@ const generateOutput = (rows, invalid = [], missing = []) => {
     })
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(formattedRows);
-    XLSX.utils.sheet_add_aoa(worksheet, [["NRO ENRE", "Medición Válida", "Medición Penalizada", "Registros Totales", "Registros Válidos", "Registros Penalizados", "Registros con Sobre Tensión", "Registros con Baja Tensión", "Energía SMC [kW/H]", "Penalización [AR$]", "Energía Entregada [kW/H]", "Semestre", "Fecha Procesamiento"]], { origin: "A1" });
+    XLSX.utils.sheet_add_aoa(worksheet, [["NRO ENRE", "Medición Válida", "Medición Penalizada", "Registros Totales", "Registros Válidos", "Registros Penalizados", "Registros con Sobre Tensión", "Registros con Baja Tensión", "Energía SMC [kW/H]", "Penalización [AR$]", "Energía Entregada [kWh]", "Semestre", "Fecha Procesamiento"]], { origin: "A1" });
     XLSX.utils.book_append_sheet(workbook, worksheet, "Output");
     worksheet["!cols"] = [];
     const max_width = formattedRows.reduce((w, r) => Math.max(w, "Registros con Sobre Tensión".length), 10);
