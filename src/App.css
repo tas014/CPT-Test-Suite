@@ -139,7 +139,8 @@ table {
 
 body {
   background-color: #F5F5F5;
-  font-family: "Inter", sans-serif;
+  /* font-family: "Poppins", sans-serif; */
+  font-family: 'Inter';
 }
 
 h1,

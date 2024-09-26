@@ -156,7 +156,7 @@ const parseDataReadings = async (data, monophasic = true) => {
     }
 }
 
-const parseFileToJSON = async (e, mult = false, targ, monophasic) => {
+const parseFileToJSON = async (e, mult = false, targ, monophasic = true) => {
     const reader = new FileReader();
     if (mult) {
         reader.readAsArrayBuffer(e)
